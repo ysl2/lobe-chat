@@ -6,6 +6,10 @@ export interface OpenAICompatibleKeyVault {
 export interface AzureOpenAIKeyVault {
   apiKey?: string;
   apiVersion?: string;
+  baseURL?: string;
+  /**
+   * @deprecated
+   */
   endpoint?: string;
 }
 
@@ -35,6 +39,7 @@ export interface UserKeyVaults {
   bedrock?: AWSBedrockKeyVault;
   cloudflare?: CloudflareKeyVault;
   deepseek?: OpenAICompatibleKeyVault;
+  doubao?: OpenAICompatibleKeyVault;
   fireworksai?: OpenAICompatibleKeyVault;
   giteeai?: OpenAICompatibleKeyVault;
   github?: OpenAICompatibleKeyVault;
