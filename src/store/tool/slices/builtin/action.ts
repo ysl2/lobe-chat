@@ -16,6 +16,7 @@ interface Text2ImageParams extends Pick<OpenAIImagePayload, 'quality' | 'style' 
  * 代理行为接口
  */
 export interface BuiltinToolAction {
+  executePython: (params: { code: string }) => { code: string; type: 'python' };
   text2image: (params: Text2ImageParams) => DallEImageItem[];
   toggleBuiltinToolLoading: (key: string, value: boolean) => void;
   transformApiArgumentsToAiState: (key: string, params: any) => Promise<string | undefined>;
@@ -27,6 +28,8 @@ export const createBuiltinToolSlice: StateCreator<
   [],
   BuiltinToolAction
 > = (set, get) => ({
+  executePython: ({ code }) => ({ code, type: 'python' }),
+
   text2image: ({ prompts, size = '1024x1024' as const, quality = 'standard', style = 'vivid' }) =>
     prompts.map((p) => ({ prompt: p, quality, size, style })),
   toggleBuiltinToolLoading: (key, value) => {

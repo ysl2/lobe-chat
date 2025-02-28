@@ -4,12 +4,14 @@ import { SWRResponse } from 'swr';
 import { StateCreator } from 'zustand/vanilla';
 
 import { useClientDataSWR } from '@/libs/swr';
+import { toolsClient } from '@/libs/trpc/client';
 import { fileService } from '@/services/file';
 import { imageGenerationService } from '@/services/textToImage';
 import { uploadService } from '@/services/upload';
 import { chatSelectors } from '@/store/chat/selectors';
 import { ChatStore } from '@/store/chat/store';
 import { useFileStore } from '@/store/file';
+import { CodeInterpreterContent } from '@/types/tool/codeInterpreter';
 import { DallEImageItem } from '@/types/tool/dalle';
 
 
@@ -20,6 +22,8 @@ const n = setNamespace('tool');
 const SWR_FETCH_KEY = 'FetchImageItem';
 
 export interface ChatDallEAction {
+  executePython: (id: string, params: CodeInterpreterContent) => Promise<void>;
+
   generateImageFromPrompts: (items: DallEImageItem[], id: string) => Promise<void>;
   text2image: (id: string, data: DallEImageItem[]) => Promise<void>;
   toggleDallEImageLoading: (key: string, value: boolean) => void;
@@ -33,6 +37,21 @@ export const dalleSlice: StateCreator<
   [],
   ChatDallEAction
 > = (set, get) => ({
+  executePython: async (id, params) => {
+    // eslint-disable-next-line unicorn/consistent-function-scoping
+    const getMessageById = (id: string) => chatSelectors.getMessageById(id)(get());
+
+    const message = getMessageById(id);
+    if (!message) return;
+
+    const data = await toolsClient.codeInterpreter.execPython.mutate({ code: params.code });
+
+    const aiContent: CodeInterpreterContent = { ...params, results: data };
+
+    await get().internal_updateMessageContent(id, JSON.stringify(aiContent));
+
+    await get().triggerAIMessage({ parentId: id });
+  },
   generateImageFromPrompts: async (items, messageId) => {
     const { toggleDallEImageLoading, updateImageItem } = get();
     // eslint-disable-next-line unicorn/consistent-function-scoping
