@@ -7,6 +7,7 @@ import {
   OpenLocalFileParams,
   OpenLocalFolderParams,
 } from '@lobechat/electron-client-ipc';
+import { loadFile } from '@lobechat/file-loaders';
 import { shell } from 'electron';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
@@ -17,7 +18,6 @@ import { FileResult, SearchOptions } from '@/types/fileSearch';
 
 import { ControllerModule, ipcClientEvent } from './index';
 
-const readFilePromise = promisify(fs.readFile);
 const statPromise = promisify(fs.stat);
 const readdirPromise = promisify(fs.readdir);
 
@@ -82,59 +82,71 @@ export default class FileSearchCtr extends ControllerModule {
   }
 
   @ipcClientEvent('readLocalFile')
-  async readFile({ path: filePath }: LocalReadFileParams): Promise<LocalReadFileResult> {
+  async readFile({ path: filePath, loc }: LocalReadFileParams): Promise<LocalReadFileResult> {
     try {
-      // 获取文件状态信息
-      const stats = await statPromise(filePath);
+      const effectiveLoc = loc ?? [0, 200];
 
-      // 获取文件名
-      const filename = path.basename(filePath);
+      const fileDocument = await loadFile(filePath);
 
-      // 获取文件扩展名
-      const fileType = path.extname(filePath).toLowerCase().replace('.', '');
+      const [startLine, endLine] = effectiveLoc;
+      const lines = fileDocument.content.split('\n');
+      const totalLineCount = lines.length;
+      const totalCharCount = fileDocument.content.length;
 
-      // 初始化结果对象
+      // Adjust slice indices to be 0-based and inclusive/exclusive
+      const selectedLines = lines.slice(startLine, endLine);
+      const content = selectedLines.join('\n');
+      const charCount = content.length;
+      const lineCount = selectedLines.length;
+
       const result: LocalReadFileResult = {
-        charCount: 0,
-        content: '',
-        createdTime: stats.birthtime,
-        fileType,
-        filename,
-        lineCount: 0,
-        modifiedTime: stats.mtime,
+        // Char count for the selected range
+        charCount,
+        // Content for the selected range
+        content,
+        createdTime: fileDocument.createdTime,
+        fileType: fileDocument.fileType,
+        filename: fileDocument.filename,
+        lineCount,
+        loc: effectiveLoc,
+        // Line count for the selected range
+        modifiedTime: fileDocument.modifiedTime,
+
+        // Total char count of the file
+        totalCharCount,
+        // Total line count of the file
+        totalLineCount,
       };
 
-      // 判断文件是否可以以纯文本方式读取
-      if (this.isTextReadableFile(fileType) && !stats.isDirectory()) {
-        try {
-          // 尝试读取文件内容
-          const content = await readFilePromise(filePath, 'utf8');
-          result.content = content;
-          result.charCount = content.length;
-          result.lineCount = content.split('\n').length;
-        } catch (error) {
-          // 读取失败，设置错误信息
-          result.content = `Failed to read file content: ${(error as Error).message}`;
+      try {
+        const stats = await statPromise(filePath);
+        if (stats.isDirectory()) {
+          result.content = 'This is a directory and cannot be read as plain text.';
+          result.charCount = 0;
+          result.lineCount = 0;
+          // Keep total counts for directory as 0 as well, or decide if they should reflect metadata size
+          result.totalCharCount = 0;
+          result.totalLineCount = 0;
         }
-      } else if (stats.isDirectory()) {
-        // 目录不能以文本方式读取
-        result.content = 'This is a directory and cannot be read as plain text.';
-      } else {
-        // 不可读取的文件类型
-        result.content = 'This file cannot be read as plain text.';
+      } catch (statError) {
+        console.error(`Stat failed for ${filePath} after loadFile:`, statError);
       }
 
       return result;
     } catch (error) {
-      // 处理文件不存在或无法访问的情况
+      console.error(`Error processing file ${filePath}:`, error);
+      const errorMessage = (error as Error).message;
       return {
         charCount: 0,
-        content: `Error accessing file: ${(error as Error).message}`,
+        content: `Error accessing or processing file: ${errorMessage}`,
         createdTime: new Date(),
-        fileType: 'unknown',
+        fileType: path.extname(filePath).toLowerCase().replace('.', '') || 'unknown',
         filename: path.basename(filePath),
         lineCount: 0,
+        loc: [0, 0],
         modifiedTime: new Date(),
+        totalCharCount: 0, // Add total counts to error result
+        totalLineCount: 0,
       };
     }
   }
