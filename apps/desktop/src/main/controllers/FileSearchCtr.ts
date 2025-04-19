@@ -6,10 +6,12 @@ import {
   LocalSearchFilesParams,
   OpenLocalFileParams,
   OpenLocalFolderParams,
+  RenameLocalFileResult,
 } from '@lobechat/electron-client-ipc';
 import { loadFile } from '@lobechat/file-loaders';
 import { shell } from 'electron';
 import * as fs from 'node:fs';
+import { rename as renamePromise } from 'node:fs/promises';
 import * as path from 'node:path';
 import { promisify } from 'node:util';
 
@@ -21,7 +23,7 @@ import { ControllerModule, ipcClientEvent } from './index';
 const statPromise = promisify(fs.stat);
 const readdirPromise = promisify(fs.readdir);
 
-export default class FileSearchCtr extends ControllerModule {
+export default class LocalFileCtr extends ControllerModule {
   private get searchService() {
     return this.app.getService(FileSearchService);
   }
@@ -196,56 +198,123 @@ export default class FileSearchCtr extends ControllerModule {
     }
   }
 
-  /**
-   * Determine if a file can be read as text
-   * @param fileType File extension
-   * @returns Whether the file can be read as text
-   */
-  private isTextReadableFile(fileType: string): boolean {
-    // Common file types that can be read as text
-    const textReadableTypes = [
-      'txt',
-      'md',
-      'json',
-      'xml',
-      'html',
-      'htm',
-      'css',
-      'scss',
-      'less',
-      'js',
-      'ts',
-      'jsx',
-      'tsx',
-      'vue',
-      'svelte',
-      'php',
-      'py',
-      'rb',
-      'java',
-      'c',
-      'cpp',
-      'h',
-      'hpp',
-      'cs',
-      'go',
-      'rs',
-      'swift',
-      'kt',
-      'sh',
-      'bat',
-      'yml',
-      'yaml',
-      'toml',
-      'ini',
-      'cfg',
-      'conf',
-      'log',
-      'svg',
-      'csv',
-      'sql',
-    ];
+  // IPC Handler for moveFile tool (handles move via oldPath/newPath)
+  @ipcClientEvent('moveFile')
+  async handleMoveFile({
+    oldPath,
+    newPath,
+  }: {
+    newPath: string;
+    oldPath: string;
+  }): Promise<{ error?: string; success: boolean }> {
+    if (!oldPath || !newPath) {
+      return { error: 'Both oldPath and newPath are required.', success: false };
+    }
+    if (path.normalize(oldPath) === path.normalize(newPath)) {
+      console.log(`Skipping rename/move: oldPath and newPath are identical: ${oldPath}`);
+      return { success: true };
+    }
+    try {
+      await renamePromise(oldPath, newPath);
+      console.log(`Successfully renamed/moved ${oldPath} to ${newPath}`);
+      return { success: true };
+    } catch (error) {
+      console.error(`Error renaming/moving ${oldPath} to ${newPath}:`, error);
+      let errorMessage = (error as Error).message;
+      if ((error as any).code === 'ENOENT')
+        errorMessage = `File or directory not found at the original path: ${oldPath}.`;
+      else if ((error as any).code === 'EPERM' || (error as any).code === 'EACCES')
+        errorMessage = `Permission denied to rename/move the item at ${oldPath}. Check file/folder permissions.`;
+      else if ((error as any).code === 'EBUSY')
+        errorMessage = `The file or directory at ${oldPath} or ${newPath} is busy or locked by another process.`;
+      else if ((error as any).code === 'EXDEV')
+        errorMessage = `Cannot move across different file systems or drives. Source: ${oldPath}, Target: ${newPath}.`;
+      else if ((error as any).code === 'EISDIR')
+        errorMessage = `Cannot overwrite a directory with a file, or vice versa. Source: ${oldPath}, Target: ${newPath}.`;
+      else if ((error as any).code === 'ENOTEMPTY')
+        errorMessage = `The target directory ${newPath} is not empty (relevant on some systems).`;
+      return { error: errorMessage, success: false };
+    }
+  }
 
-    return textReadableTypes.includes(fileType.toLowerCase());
+  // Add IPC Handler for renameFile tool
+  // TODO: Define RenameLocalFileParams in @lobechat/electron-client-ipc based on manifest
+  @ipcClientEvent('renameLocalFile')
+  async handleRenameFile({
+    path: currentPath,
+    newName,
+  }: {
+    newName: string;
+    path: string;
+  }): Promise<RenameLocalFileResult> {
+    // Basic validation (can also be done in frontend action)
+    if (!currentPath || !newName) {
+      return { error: 'Both path and newName are required.', newPath: '', success: false };
+    }
+    // Prevent path traversal or using invalid characters/names
+    if (
+      newName.includes('/') ||
+      newName.includes('\\') ||
+      newName === '.' ||
+      newName === '..' ||
+      /["*/:<>?\\|]/.test(newName) // Check for typical invalid filename characters
+    ) {
+      return {
+        error:
+          'Invalid new name. It cannot contain path separators (/, \\), be "." or "..", or include characters like < > : " / \\ | ? *.',
+        newPath: '',
+        success: false,
+      };
+    }
+
+    let newPath: string;
+    try {
+      const dir = path.dirname(currentPath);
+      newPath = path.join(dir, newName);
+
+      // Check if paths are identical after calculation
+      if (path.normalize(currentPath) === path.normalize(newPath)) {
+        console.log(
+          `Skipping rename: oldPath and calculated newPath are identical: ${currentPath}`,
+        );
+        // Consider success as no change is needed, but maybe inform the user?
+        // Return success for now.
+        return { newPath, success: true };
+      }
+    } catch (error) {
+      console.error(`Error calculating new path for rename ${currentPath} to ${newName}:`, error);
+      return {
+        error: `Internal error calculating the new path: ${(error as Error).message}`,
+        newPath: '',
+        success: false,
+      };
+    }
+
+    // Perform the rename operation using fs.promises.rename directly
+    try {
+      await renamePromise(currentPath, newPath);
+      console.log(`Successfully renamed ${currentPath} to ${newPath}`);
+      // Optionally return the newPath if frontend needs it
+      // return { success: true, newPath: newPath };
+      return { newPath, success: true };
+    } catch (error) {
+      console.error(`Error renaming ${currentPath} to ${newPath}:`, error);
+      let errorMessage = (error as Error).message;
+      // Provide more specific error messages based on common codes
+      if ((error as any).code === 'ENOENT') {
+        errorMessage = `File or directory not found at the original path: ${currentPath}.`;
+      } else if ((error as any).code === 'EPERM' || (error as any).code === 'EACCES') {
+        errorMessage = `Permission denied to rename the item at ${currentPath}. Check file/folder permissions.`;
+      } else if ((error as any).code === 'EBUSY') {
+        errorMessage = `The file or directory at ${currentPath} or ${newPath} is busy or locked by another process.`;
+      } else if ((error as any).code === 'EISDIR' || (error as any).code === 'ENOTDIR') {
+        errorMessage = `Cannot rename - conflict between file and directory. Source: ${currentPath}, Target: ${newPath}.`;
+      } else if ((error as any).code === 'EEXIST') {
+        // Target already exists
+        errorMessage = `Cannot rename: an item with the name '${newName}' already exists at this location.`;
+      }
+      // Add more specific checks as needed
+      return { error: errorMessage, newPath: '', success: false };
+    }
   }
 }
