@@ -1,3 +1,4 @@
+import isEqual from 'fast-deep-equal';
 import React, { memo } from 'react';
 
 import { MarkdownElementProps } from '../../type';
@@ -23,6 +24,6 @@ const Render = memo<MarkdownElementProps<LocalFileProps>>(({ node }) => {
   const isDir = isDirectory === true;
 
   return <LocalFile isDirectory={isDir} name={name} path={path} />;
-});
+}, isEqual);
 
 export default Render;

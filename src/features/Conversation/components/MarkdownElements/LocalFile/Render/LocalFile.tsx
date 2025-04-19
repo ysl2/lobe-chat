@@ -49,6 +49,7 @@ const LocalFile = ({
     <Flexbox
       align={'center'}
       className={styles.container}
+      gap={4}
       horizontal
       onClick={handleClick}
       style={{ display: 'inline-flex', verticalAlign: 'middle' }}
