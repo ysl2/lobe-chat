@@ -10,7 +10,7 @@ import {
   OpenLocalFolderParams,
   RenameLocalFileResult,
 } from '@lobechat/electron-client-ipc';
-import { loadFile } from '@lobechat/file-loaders';
+import { SYSTEM_FILES_TO_IGNORE, loadFile } from '@lobechat/file-loaders';
 import { shell } from 'electron';
 import * as fs from 'node:fs';
 import { rename as renamePromise } from 'node:fs/promises';
@@ -164,6 +164,11 @@ export default class LocalFileCtr extends ControllerModule {
       const entries = await readdirPromise(dirPath);
 
       for (const entry of entries) {
+        // Skip specific system files based on the ignore list
+        if (SYSTEM_FILES_TO_IGNORE.includes(entry)) {
+          continue;
+        }
+
         const fullPath = path.join(dirPath, entry);
         try {
           const stats = await statPromise(fullPath);

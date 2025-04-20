@@ -150,6 +150,7 @@ export class MacOSMenu extends BaseMenuPlatform implements IMenuPlatform {
         submenu: [
           { label: t('view.reload'), role: 'reload' },
           { label: t('view.forceReload'), role: 'forceReload' },
+          { accelerator: 'F12', label: t('dev.devTools'), role: 'toggleDevTools' },
           { type: 'separator' },
           { accelerator: 'Command+0', label: t('view.resetZoom'), role: 'resetZoom' },
           { accelerator: 'Command+Plus', label: t('view.zoomIn'), role: 'zoomIn' },
@@ -194,10 +195,6 @@ export class MacOSMenu extends BaseMenuPlatform implements IMenuPlatform {
       template.push({
         label: t('dev.title'),
         submenu: [
-          { accelerator: 'Command+R', label: t('dev.reload'), role: 'reload' },
-          { accelerator: 'Shift+Command+R', label: t('dev.forceReload'), role: 'forceReload' },
-          { accelerator: 'F12', label: t('dev.devTools'), role: 'toggleDevTools' },
-          { type: 'separator' },
           {
             click: () => {
               this.app.browserManager.retrieveByIdentifier('devtools').show();
