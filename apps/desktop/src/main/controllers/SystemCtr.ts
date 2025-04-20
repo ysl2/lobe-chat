@@ -1,7 +1,9 @@
+import { ElectronAppState } from '@lobechat/electron-client-ipc';
 import { app, systemPreferences } from 'electron';
 import { macOS } from 'electron-is';
 import { readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
+import process from 'node:process';
 
 import { userDataDir } from '@/const/dir';
 
@@ -9,7 +11,37 @@ import { ControllerModule, ipcClientEvent, ipcServerEvent } from './index';
 
 const DB_SCHEMA_HASH_PATH = path.join(userDataDir, 'lobehub-local-db-schema-hash');
 
-export default class SystemService extends ControllerModule {
+export default class SystemController extends ControllerModule {
+  /**
+   * Handles the 'getDesktopAppState' IPC request.
+   * Gathers essential application and system information.
+   */
+  @ipcClientEvent('getDesktopAppState')
+  async getAppState(): Promise<ElectronAppState> {
+    const platform = process.platform;
+    const arch = process.arch;
+
+    return {
+      // System Info
+      arch,
+      isLinux: platform === 'linux',
+      isMac: platform === 'darwin',
+      isWindows: platform === 'win32',
+      platform: platform as 'darwin' | 'win32' | 'linux',
+      userPath: {
+        // User Paths (ensure keys match UserPathData / DesktopAppState interface)
+        desktop: app.getPath('desktop'),
+        documents: app.getPath('documents'),
+        downloads: app.getPath('downloads'),
+        home: app.getPath('home'),
+        music: app.getPath('music'),
+        pictures: app.getPath('pictures'),
+        userData: app.getPath('userData'),
+        videos: app.getPath('videos'),
+      },
+    };
+  }
+
   /**
    * 检查可用性
    */

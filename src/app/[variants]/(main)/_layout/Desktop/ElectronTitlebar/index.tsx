@@ -1,6 +1,7 @@
 import { memo } from 'react';
 import { Flexbox } from 'react-layout-kit';
 
+import { useElectronStore } from '@/store/electron';
 import { electronStylish } from '@/styles/electron';
 
 import Sync from './Sync';
@@ -9,6 +10,10 @@ import { UpdateNotification } from './UpdateNotification';
 export const TITLE_BAR_HEIGHT = 36;
 
 const TitleBar = memo(() => {
+  const initElectronAppState = useElectronStore((s) => s.useInitElectronAppState);
+
+  initElectronAppState();
+
   return (
     <Flexbox
       align={'center'}
