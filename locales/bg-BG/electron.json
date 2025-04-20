@@ -18,15 +18,21 @@
     "urlRequired": "Моля, въведете адреса на сървъра"
   },
   "updater": {
+    "checkingUpdate": "Проверка за нова версия",
+    "checkingUpdateDesc": "Извличане на информация за версията...",
+    "downloadNewVersion": "Изтегляне на нова версия",
     "downloadingUpdate": "Изтегляне на актуализация",
     "downloadingUpdateDesc": "Актуализацията се изтегля, моля изчакайте...",
+    "installLater": "Актуализиране при следващо стартиране",
+    "isLatestVersion": "Вече имате най-новата версия",
+    "isLatestVersionDesc": "Страхотно, версията {{version}} е най-новата налична версия.",
     "later": "Актуализирай по-късно",
     "newVersionAvailable": "Налична е нова версия",
     "newVersionAvailableDesc": "Открита е нова версия {{version}}, искате ли да я изтеглите сега?",
-    "restartAndInstall": "Рестартирай и инсталирай",
+    "restartAndInstall": "Инсталиране на актуализацията и рестартиране",
     "updateError": "Грешка при актуализацията",
     "updateReady": "Актуализацията е готова",
-    "updateReadyDesc": "Lobe Chat {{version}} е изтеглен, рестартирайте приложението, за да завършите инсталацията.",
+    "updateReadyDesc": "Нова версия {{version}} е изтеглена, инсталацията ще завърши след рестартиране на приложението.",
     "upgradeNow": "Актуализирай сега"
   }
 }

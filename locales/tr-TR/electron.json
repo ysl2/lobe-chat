@@ -18,15 +18,21 @@
     "urlRequired": "Lütfen sunucu adresini girin"
   },
   "updater": {
+    "checkingUpdate": "Yeni sürüm kontrol ediliyor",
+    "checkingUpdateDesc": "Sürüm bilgileri alınıyor...",
+    "downloadNewVersion": "Yeni sürümü indir",
     "downloadingUpdate": "Güncelleme indiriliyor",
     "downloadingUpdateDesc": "Güncelleme indiriliyor, lütfen bekleyin...",
+    "installLater": "Gelecek başlatmada güncelle",
+    "isLatestVersion": "Şu anda en son sürümdesiniz",
+    "isLatestVersionDesc": "Harika, kullandığınız sürüm {{version}} en güncel sürüm. ",
     "later": "Güncellemeyi daha sonra yap",
     "newVersionAvailable": "Yeni sürüm mevcut",
     "newVersionAvailableDesc": "Yeni sürüm {{version}} bulundu, hemen indirmek ister misiniz?",
-    "restartAndInstall": "Yeniden başlat ve yükle",
+    "restartAndInstall": "Güncellemeyi yükle ve yeniden başlat",
     "updateError": "Güncelleme hatası",
     "updateReady": "Güncelleme hazır",
-    "updateReadyDesc": "Lobe Chat {{version}} indirildi, yüklemeyi tamamlamak için uygulamayı yeniden başlatın.",
+    "updateReadyDesc": "Yeni sürüm {{version}} indirildi, uygulamayı yeniden başlattığınızda yükleme tamamlanacaktır.",
     "upgradeNow": "Şimdi güncelle"
   }
 }

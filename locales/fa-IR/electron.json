@@ -18,15 +18,21 @@
     "urlRequired": "لطفاً آدرس سرور را وارد کنید"
   },
   "updater": {
+    "checkingUpdate": "بررسی نسخه جدید",
+    "checkingUpdateDesc": "در حال دریافت اطلاعات نسخه...",
+    "downloadNewVersion": "دانلود نسخه جدید",
     "downloadingUpdate": "در حال دانلود به‌روزرسانی",
     "downloadingUpdateDesc": "به‌روزرسانی در حال دانلود است، لطفاً صبر کنید...",
+    "installLater": "به‌روزرسانی در راه‌اندازی بعدی",
+    "isLatestVersion": "در حال حاضر آخرین نسخه است",
+    "isLatestVersionDesc": "عالی است، نسخه {{version}} که استفاده می‌کنید، آخرین نسخه موجود است.",
     "later": "به‌روزرسانی بعداً",
     "newVersionAvailable": "نسخه جدید در دسترس است",
     "newVersionAvailableDesc": "نسخه جدید {{version}} شناسایی شد، آیا می‌خواهید بلافاصله دانلود کنید؟",
-    "restartAndInstall": "راه‌اندازی مجدد و نصب",
+    "restartAndInstall": "نصب به‌روزرسانی و راه‌اندازی مجدد",
     "updateError": "خطا در به‌روزرسانی",
     "updateReady": "به‌روزرسانی آماده است",
-    "updateReadyDesc": "Lobe Chat {{version}} دانلود شده است، با راه‌اندازی مجدد برنامه می‌توانید نصب را کامل کنید.",
+    "updateReadyDesc": "نسخه جدید {{version}} دانلود شده است، با راه‌اندازی مجدد برنامه نصب کامل می‌شود.",
     "upgradeNow": "همین حالا به‌روزرسانی کنید"
   }
 }

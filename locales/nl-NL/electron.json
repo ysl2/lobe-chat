@@ -18,15 +18,21 @@
     "urlRequired": "Voer het serveradres in"
   },
   "updater": {
+    "checkingUpdate": "Controleer op updates",
+    "checkingUpdateDesc": "Bezig met het ophalen van versie-informatie...",
+    "downloadNewVersion": "Download nieuwe versie",
     "downloadingUpdate": "Update aan het downloaden",
     "downloadingUpdateDesc": "De update wordt gedownload, even geduld...",
+    "installLater": "Bij de volgende opstarten bijwerken",
+    "isLatestVersion": "Je hebt de nieuwste versie",
+    "isLatestVersionDesc": "Geweldig, de versie {{version}} die je gebruikt is de meest recente versie.",
     "later": "Later bijwerken",
     "newVersionAvailable": "Nieuwe versie beschikbaar",
     "newVersionAvailableDesc": "Nieuwe versie {{version}} gevonden, wilt u deze nu downloaden?",
-    "restartAndInstall": "Herstarten en installeren",
+    "restartAndInstall": "Installeer de update en herstart",
     "updateError": "Updatefout",
     "updateReady": "Update gereed",
-    "updateReadyDesc": "Lobe Chat {{version}} is gedownload, herstart de applicatie om de installatie te voltooien.",
+    "updateReadyDesc": "Nieuwe versie {{version}} is gedownload, herstart de applicatie om de installatie te voltooien.",
     "upgradeNow": "Nu bijwerken"
   }
 }

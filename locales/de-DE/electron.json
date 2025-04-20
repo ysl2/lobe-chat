@@ -18,15 +18,21 @@
     "urlRequired": "Bitte geben Sie die Serveradresse ein"
   },
   "updater": {
+    "checkingUpdate": "Überprüfen auf Updates",
+    "checkingUpdateDesc": "Versioninformationen werden abgerufen...",
+    "downloadNewVersion": "Neue Version herunterladen",
     "downloadingUpdate": "Update wird heruntergeladen",
     "downloadingUpdateDesc": "Das Update wird heruntergeladen, bitte warten...",
+    "installLater": "Beim nächsten Start aktualisieren",
+    "isLatestVersion": "Sie verwenden bereits die neueste Version",
+    "isLatestVersionDesc": "Fantastisch, die verwendete Version {{version}} ist die aktuellste Version.",
     "later": "Später aktualisieren",
     "newVersionAvailable": "Neue Version verfügbar",
     "newVersionAvailableDesc": "Eine neue Version {{version}} wurde gefunden, möchten Sie jetzt herunterladen?",
-    "restartAndInstall": "Neustarten und installieren",
+    "restartAndInstall": "Update installieren und neu starten",
     "updateError": "Update-Fehler",
     "updateReady": "Update ist bereit",
-    "updateReadyDesc": "Lobe Chat {{version}} wurde heruntergeladen, starten Sie die Anwendung neu, um die Installation abzuschließen.",
+    "updateReadyDesc": "Die neue Version {{version}} wurde heruntergeladen, die Installation wird nach dem Neustart der Anwendung abgeschlossen.",
     "upgradeNow": "Jetzt aktualisieren"
   }
 }

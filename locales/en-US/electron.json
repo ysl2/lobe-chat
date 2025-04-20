@@ -18,15 +18,21 @@
     "urlRequired": "Please enter the server address"
   },
   "updater": {
+    "checkingUpdate": "Checking for updates",
+    "checkingUpdateDesc": "Retrieving version information...",
+    "downloadNewVersion": "Download new version",
     "downloadingUpdate": "Downloading update",
     "downloadingUpdateDesc": "The update is downloading, please wait...",
+    "installLater": "Update on next launch",
+    "isLatestVersion": "You are using the latest version",
+    "isLatestVersionDesc": "Great! The version {{version}} you are using is the latest available.",
     "later": "Update later",
     "newVersionAvailable": "New version available",
     "newVersionAvailableDesc": "A new version {{version}} has been found, would you like to download it now?",
-    "restartAndInstall": "Restart and install",
+    "restartAndInstall": "Install updates and restart",
     "updateError": "Update error",
     "updateReady": "Update ready",
-    "updateReadyDesc": "Lobe Chat {{version}} has been downloaded, restart the application to complete the installation.",
+    "updateReadyDesc": "The new version {{version}} has been downloaded. Restart the application to complete the installation.",
     "upgradeNow": "Update now"
   }
 }

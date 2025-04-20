@@ -18,15 +18,21 @@
     "urlRequired": "يرجى إدخال عنوان الخادم"
   },
   "updater": {
+    "checkingUpdate": "التحقق من وجود تحديثات",
+    "checkingUpdateDesc": "جارٍ الحصول على معلومات الإصدار...",
+    "downloadNewVersion": "تحميل إصدار جديد",
     "downloadingUpdate": "جارٍ تنزيل التحديث",
     "downloadingUpdateDesc": "يتم تنزيل التحديث، يرجى الانتظار...",
+    "installLater": "تحديث عند بدء التشغيل التالي",
+    "isLatestVersion": "الإصدار الحالي هو الأحدث",
+    "isLatestVersionDesc": "رائع، الإصدار {{version}} الذي تستخدمه هو أحدث إصدار متاح.",
     "later": "تحديث لاحقًا",
     "newVersionAvailable": "يتوفر إصدار جديد",
     "newVersionAvailableDesc": "تم العثور على إصدار جديد {{version}}، هل ترغب في التنزيل الآن؟",
-    "restartAndInstall": "إعادة التشغيل والتثبيت",
+    "restartAndInstall": "تثبيت التحديث وإعادة التشغيل",
     "updateError": "خطأ في التحديث",
     "updateReady": "التحديث جاهز",
-    "updateReadyDesc": "تم تنزيل Lobe Chat {{version}} بنجاح، سيتم التثبيت بعد إعادة تشغيل التطبيق.",
+    "updateReadyDesc": "تم تنزيل الإصدار الجديد {{version}}، يمكنك إكمال التثبيت بعد إعادة تشغيل التطبيق.",
     "upgradeNow": "تحديث الآن"
   }
 }
