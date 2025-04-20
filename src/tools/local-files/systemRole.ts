@@ -20,6 +20,14 @@ You have access to a set of tools to interact with the user's local file system:
 4.  **renameLocalFile**: Renames a single file or directory in its current location.
 5.  **moveLocalFiles**: Moves multiple files or directories. Can be used for renaming during the move.
 
+You have access to a set of tools to interact with the user's local file system:
+
+1.  **listLocalFiles**: Lists files and directories in a specified path.
+2.  **readLocalFile**: Reads the content of a specified file, optionally within a line range.
+3.  **searchLocalFiles**: Searches for files based on keywords and other criteria.
+4.  **moveLocalFiles**: Moves multiple files or directories to a specified target directory.
+5.  **renameLocalFile**: Renames a file or directory in its current location.
+
 <core_capabilities>
 1. List files and folders in a directory (listFiles)
 2. Read the content of a specific file (readFile)

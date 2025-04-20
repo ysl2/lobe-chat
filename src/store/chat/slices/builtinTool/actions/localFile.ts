@@ -1,9 +1,10 @@
 import {
   ListLocalFileParams,
+  LocalMoveFilesResultItem,
   LocalReadFileParams,
   LocalReadFilesParams,
   LocalSearchFilesParams,
-  MoveLocalFileParams,
+  MoveLocalFilesParams,
   RenameLocalFileParams,
 } from '@lobechat/electron-client-ipc';
 import { StateCreator } from 'zustand/vanilla';
@@ -13,27 +14,27 @@ import { ChatStore } from '@/store/chat/store';
 import {
   LocalFileListState,
   LocalFileSearchState,
-  LocalMoveFileState,
+  LocalMoveFilesState,
   LocalReadFileState,
   LocalReadFilesState,
   LocalRenameFileState,
 } from '@/tools/local-files/type';
 
-// Define the parameters types inline for now
-// Replace with actual types once defined in ipc package
-
-// type MoveOrRenameParams = // REMOVE this complex type
-//   | { type: 'rename'; oldPath: string; newName: string }
-//   | { type: 'move'; oldPath: string; newPath: string };
-
 export interface LocalFileAction {
+  internal_triggerLocalFileToolCalling: <T = any>(
+    id: string,
+    callingService: () => Promise<{ content: any; state: T }>,
+  ) => Promise<boolean>;
+
   listLocalFiles: (id: string, params: ListLocalFileParams) => Promise<boolean>;
-  moveLocalFile: (id: string, params: MoveLocalFileParams) => Promise<boolean>;
+  moveLocalFiles: (id: string, params: MoveLocalFilesParams) => Promise<boolean>;
   reSearchLocalFiles: (id: string, params: LocalSearchFilesParams) => Promise<boolean>;
   readLocalFile: (id: string, params: LocalReadFileParams) => Promise<boolean>;
   readLocalFiles: (id: string, params: LocalReadFilesParams) => Promise<boolean>;
-  renameLocalFile: (id: string, params: RenameLocalFileParams) => Promise<boolean>; // Added rename action
+  renameLocalFile: (id: string, params: RenameLocalFileParams) => Promise<boolean>;
+  // Added rename action
   searchLocalFiles: (id: string, params: LocalSearchFilesParams) => Promise<boolean>;
+
   toggleLocalFileLoading: (id: string, loading: boolean) => void;
 }
 
@@ -43,15 +44,13 @@ export const localFileSlice: StateCreator<
   [],
   LocalFileAction
 > = (set, get) => ({
-  listLocalFiles: async (id, params) => {
+  internal_triggerLocalFileToolCalling: async (id, callingService) => {
     get().toggleLocalFileLoading(id, true);
     try {
-      const data = await localFileService.listLocalFiles(params);
-      console.log(data);
-      await get().updatePluginState(id, { listResults: data } as LocalFileListState);
-      await get().internal_updateMessageContent(id, JSON.stringify(data));
+      const { state, content } = await callingService();
+      await get().updatePluginState(id, state as any);
+      await get().internal_updateMessageContent(id, JSON.stringify(content));
     } catch (error) {
-      console.error('Error listing local files:', error);
       await get().internal_updateMessagePluginError(id, {
         body: error,
         message: (error as Error).message,
@@ -63,68 +62,39 @@ export const localFileSlice: StateCreator<
     return true;
   },
 
-  moveLocalFile: async (id, params) => {
-    // Params are { oldPath: string; newPath: string }
-    get().toggleLocalFileLoading(id, true);
-    let success = false;
-    // REMOVE path calculation logic
-    // let finalOldPath: string;
-    // let finalNewPath: string;
+  listLocalFiles: async (id, params) => {
+    return get().internal_triggerLocalFileToolCalling<LocalFileListState>(id, async () => {
+      const result = await localFileService.listLocalFiles(params);
+      const state: LocalFileListState = { listResults: result };
+      return { content: result, state };
+    });
+  },
 
-    try {
-      // Directly use the provided params
-      const { oldPath, newPath } = params;
+  moveLocalFiles: async (id, params) => {
+    return get().internal_triggerLocalFileToolCalling<LocalMoveFilesState>(id, async () => {
+      const results: LocalMoveFilesResultItem[] = await localFileService.moveLocalFiles(params);
 
-      // Optional: Check if paths are identical before calling service
-      // Note: path.normalize is NOT available here. Basic string comparison might suffice for simple cases,
-      // but identical paths should ideally be caught before calling the action or handled robustly by the backend.
-      // For now, let the backend handle identical path logic if needed.
-      // if (oldPath === newPath) { ... }
+      // 检查所有文件是否成功移动以更新消息内容
+      const allSucceeded = results.every((r) => r.success);
+      const someFailed = results.some((r) => !r.success);
+      const successCount = results.filter((r) => r.success).length;
+      const failedCount = results.length - successCount;
 
-      // --- Call Service with provided paths ---
-      const result = await localFileService.moveLocalFile({ newPath, oldPath });
+      let message = '';
 
-      if (result.success) {
-        await get().updatePluginState(id, {
-          newPath,
-          oldPath,
-          success: true,
-        } as LocalMoveFileState);
-        await get().internal_updateMessageContent(
-          id,
-          JSON.stringify({
-            message: `Successfully moved file from ${oldPath} to ${newPath}.`,
-            success: true,
-          }),
-        );
-        success = true;
+      if (allSucceeded) {
+        message = `Successfully moved ${results.length} item(s).`;
+      } else if (someFailed) {
+        message = `Moved ${successCount} item(s) successfully. Failed to move ${failedCount} item(s).`;
       } else {
-        throw new Error(result.error || 'Failed to move file.');
+        // 所有都失败了？
+        message = `Failed to move all ${results.length} item(s).`;
       }
-    } catch (error) {
-      console.error('Error in moveLocalFile action:', error);
-      const errorMessage = (error as Error).message;
-      await get().updatePluginState(id, {
-        error: errorMessage,
-        newPath: params.newPath,
-        oldPath: params.oldPath,
-        success: false,
-      } as LocalMoveFileState);
-      await get().internal_updateMessagePluginError(id, {
-        body: error,
-        message: errorMessage,
-        type: 'PluginServerError',
-      });
-      await get().internal_updateMessageContent(
-        id,
-        JSON.stringify({ error: errorMessage, success: false }),
-      );
-      success = false;
-    } finally {
-      get().toggleLocalFileLoading(id, false);
-    }
 
-    return success;
+      const state: LocalMoveFilesState = { results, successCount, totalCount: results.length };
+
+      return { content: { message, results }, state };
+    });
   },
 
   reSearchLocalFiles: async (id, params) => {
@@ -136,51 +106,23 @@ export const localFileSlice: StateCreator<
   },
 
   readLocalFile: async (id, params) => {
-    get().toggleLocalFileLoading(id, true);
-
-    try {
+    return get().internal_triggerLocalFileToolCalling<LocalReadFileState>(id, async () => {
       const result = await localFileService.readLocalFile(params);
-
-      await get().updatePluginState(id, { fileContent: result } as LocalReadFileState);
-      await get().internal_updateMessageContent(id, JSON.stringify(result));
-    } catch (error) {
-      console.error('Error reading local file:', error);
-      await get().internal_updateMessagePluginError(id, {
-        body: error,
-        message: (error as Error).message,
-        type: 'PluginServerError',
-      });
-    }
-    get().toggleLocalFileLoading(id, false);
-    return true;
+      const state: LocalReadFileState = { fileContent: result };
+      return { content: result, state };
+    });
   },
 
   readLocalFiles: async (id, params) => {
-    get().toggleLocalFileLoading(id, true);
-
-    try {
+    return get().internal_triggerLocalFileToolCalling<LocalReadFilesState>(id, async () => {
       const results = await localFileService.readLocalFiles(params);
-      await get().updatePluginState(id, { filesContent: results } as LocalReadFilesState);
-      await get().internal_updateMessageContent(id, JSON.stringify(results));
-    } catch (error) {
-      console.error('Error reading local files:', error);
-      await get().internal_updateMessagePluginError(id, {
-        body: error,
-        message: (error as Error).message,
-        type: 'PluginServerError',
-      });
-    }
-    get().toggleLocalFileLoading(id, false);
-
-    return true;
+      const state: LocalReadFilesState = { filesContent: results };
+      return { content: results, state };
+    });
   },
 
   renameLocalFile: async (id, params) => {
-    // New action for rename
-    get().toggleLocalFileLoading(id, true);
-    let success = false;
-    try {
-      // Params are { path: currentFullPath, newName: newNameOnly }
+    return get().internal_triggerLocalFileToolCalling<LocalRenameFileState>(id, async () => {
       const { path: currentPath, newName } = params;
 
       // Basic validation for newName (can be done here or backend, maybe better in backend)
@@ -199,71 +141,36 @@ export const localFileSlice: StateCreator<
 
       const result = await localFileService.renameLocalFile({ newName, path: currentPath }); // Call the specific service
 
+      let state: LocalRenameFileState;
+      let content: { message: string; success: boolean };
+
       if (result.success) {
-        // Assuming backend calculates the newPath and maybe returns it?
-        // Or frontend reconstructs it for display if needed.
-        // For now, just store success and input params.
-        await get().updatePluginState(id, {
-          // Keep track of original path
-          newPath: result.newPath,
-          oldPath: currentPath,
+        state = { newPath: result.newPath!, oldPath: currentPath, success: true };
+        // Simplified message
+        content = {
+          message: `Successfully renamed file ${currentPath} to ${newName}.`,
           success: true,
-          // Keep track of the new name requested
-          // newPath: result.newPath // Ideally backend would return this
-        } as LocalRenameFileState); // Assuming LocalRenameFileState exists
-        await get().internal_updateMessageContent(
-          id,
-          JSON.stringify({
-            message: `Successfully renamed file ${currentPath} to ${newName}.`,
-            success: true, // Simplified message
-          }),
-        );
-        success = true;
+        };
       } else {
-        throw new Error(result.error || 'Failed to rename file.');
+        const errorMessage = result.error;
+        state = {
+          error: errorMessage,
+          newPath: '',
+          oldPath: params.path,
+          success: false,
+        };
+        content = { message: errorMessage, success: false };
       }
-    } catch (error) {
-      console.error('Error in renameLocalFile action:', error);
-      const errorMessage = (error as Error).message;
-      await get().updatePluginState(id, {
-        error: errorMessage,
-        newPath: '',
-        oldPath: params.path,
-        success: false,
-      } as LocalRenameFileState);
-      await get().internal_updateMessagePluginError(id, {
-        body: error,
-        message: errorMessage,
-        type: 'PluginServerError',
-      });
-      await get().internal_updateMessageContent(
-        id,
-        JSON.stringify({ error: errorMessage, success: false }),
-      );
-      success = false;
-    } finally {
-      get().toggleLocalFileLoading(id, false);
-    }
-    return success;
+      return { content, state };
+    });
   },
 
   searchLocalFiles: async (id, params) => {
-    get().toggleLocalFileLoading(id, true);
-    try {
-      const data = await localFileService.searchLocalFiles(params);
-      await get().updatePluginState(id, { searchResults: data } as LocalFileSearchState);
-      await get().internal_updateMessageContent(id, JSON.stringify(data));
-    } catch (error) {
-      console.error('Error searching local files:', error);
-      await get().internal_updateMessagePluginError(id, {
-        body: error,
-        message: (error as Error).message,
-        type: 'PluginServerError',
-      });
-    }
-    get().toggleLocalFileLoading(id, false);
-
-    return true;
+    return get().internal_triggerLocalFileToolCalling<LocalFileSearchState>(id, async () => {
+      const result = await localFileService.searchLocalFiles(params);
+      const state: LocalFileSearchState = { searchResults: result };
+      return { content: result, state };
+    });
   },
 
   toggleLocalFileLoading: (id, loading) => {

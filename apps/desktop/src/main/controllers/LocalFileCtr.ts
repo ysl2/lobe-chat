@@ -1,9 +1,11 @@
 import {
   ListLocalFileParams,
+  LocalMoveFilesResultItem,
   LocalReadFileParams,
   LocalReadFileResult,
   LocalReadFilesParams,
   LocalSearchFilesParams,
+  MoveLocalFilesParams,
   OpenLocalFileParams,
   OpenLocalFolderParams,
   RenameLocalFileResult,
@@ -22,6 +24,8 @@ import { ControllerModule, ipcClientEvent } from './index';
 
 const statPromise = promisify(fs.stat);
 const readdirPromise = promisify(fs.readdir);
+const renamePromiseFs = promisify(fs.rename);
+const accessPromise = promisify(fs.access);
 
 export default class LocalFileCtr extends ControllerModule {
   private get searchService() {
@@ -198,47 +202,105 @@ export default class LocalFileCtr extends ControllerModule {
     }
   }
 
-  // IPC Handler for moveFile tool (handles move via oldPath/newPath)
-  @ipcClientEvent('moveFile')
-  async handleMoveFile({
-    oldPath,
-    newPath,
-  }: {
-    newPath: string;
-    oldPath: string;
-  }): Promise<{ error?: string; success: boolean }> {
-    if (!oldPath || !newPath) {
-      return { error: 'Both oldPath and newPath are required.', success: false };
+  @ipcClientEvent('moveLocalFiles')
+  async handleMoveFiles({ items }: MoveLocalFilesParams): Promise<LocalMoveFilesResultItem[]> {
+    const results: LocalMoveFilesResultItem[] = [];
+
+    if (!items || items.length === 0) {
+      console.warn('moveLocalFiles called with empty items array.');
+      return [];
     }
-    if (path.normalize(oldPath) === path.normalize(newPath)) {
-      console.log(`Skipping rename/move: oldPath and newPath are identical: ${oldPath}`);
-      return { success: true };
+
+    // 逐个处理移动请求
+    for (const item of items) {
+      const { oldPath: sourcePath, newPath } = item;
+      const resultItem: LocalMoveFilesResultItem = {
+        newPath: undefined,
+        sourcePath,
+        success: false,
+      };
+
+      // 基本验证
+      if (!sourcePath || !newPath) {
+        resultItem.error = 'Both oldPath and newPath are required for each item.';
+        results.push(resultItem);
+        continue;
+      }
+
+      try {
+        // 检查源是否存在
+        try {
+          await accessPromise(sourcePath, fs.constants.F_OK);
+        } catch (accessError: any) {
+          if (accessError.code === 'ENOENT') {
+            throw new Error(`Source path not found: ${sourcePath}`);
+          } else {
+            throw new Error(
+              `Permission denied accessing source path: ${sourcePath}. ${accessError.message}`,
+            );
+          }
+        }
+
+        // 检查目标路径是否与源路径相同
+        if (path.normalize(sourcePath) === path.normalize(newPath)) {
+          console.log(`Skipping move: source and target path are identical: ${sourcePath}`);
+          resultItem.success = true;
+          resultItem.newPath = newPath; // 即使未移动，也报告目标路径
+          results.push(resultItem);
+          continue;
+        }
+
+        // LBYL: 确保目标目录存在
+        const targetDir = path.dirname(newPath);
+        try {
+          // 使用 recursive: true，如果目录已存在则此操作无效果，如果不存在则创建
+          await fs.promises.mkdir(targetDir, { recursive: true });
+        } catch (mkdirError: any) {
+          // 如果创建目录失败（例如权限问题），则抛出错误
+          throw new Error(
+            `Could not create target directory: ${targetDir}. Error: ${mkdirError.message}`,
+          );
+        }
+
+        // 执行移动 (rename)
+        await renamePromiseFs(sourcePath, newPath);
+        resultItem.success = true;
+        resultItem.newPath = newPath;
+        console.log(`Successfully moved ${sourcePath} to ${newPath}`);
+      } catch (error) {
+        console.error(`Error moving ${sourcePath} to ${newPath}:`, error);
+        // 使用与 handleMoveFile 类似的错误处理逻辑
+        let errorMessage = (error as Error).message;
+        if ((error as any).code === 'ENOENT')
+          errorMessage = `Source path not found: ${sourcePath}.`;
+        else if ((error as any).code === 'EPERM' || (error as any).code === 'EACCES')
+          errorMessage = `Permission denied to move the item at ${sourcePath}. Check file/folder permissions.`;
+        else if ((error as any).code === 'EBUSY')
+          errorMessage = `The file or directory at ${sourcePath} or ${newPath} is busy or locked by another process.`;
+        else if ((error as any).code === 'EXDEV')
+          errorMessage = `Cannot move across different file systems or drives. Source: ${sourcePath}, Target: ${newPath}.`;
+        else if ((error as any).code === 'EISDIR')
+          errorMessage = `Cannot overwrite a directory with a file, or vice versa. Source: ${sourcePath}, Target: ${newPath}.`;
+        else if ((error as any).code === 'ENOTEMPTY')
+          errorMessage = `The target directory ${newPath} is not empty (relevant on some systems if target exists and is a directory).`;
+        else if ((error as any).code === 'EEXIST')
+          errorMessage = `An item already exists at the target path: ${newPath}.`;
+        // 保留来自访问检查或目录检查的更具体错误
+        else if (
+          !errorMessage.startsWith('Source path not found') &&
+          !errorMessage.startsWith('Permission denied accessing source path') &&
+          !errorMessage.includes('Target directory')
+        ) {
+          // Keep the original error message if none of the specific codes match
+        }
+        resultItem.error = errorMessage;
+      }
+      results.push(resultItem);
     }
-    try {
-      await renamePromise(oldPath, newPath);
-      console.log(`Successfully renamed/moved ${oldPath} to ${newPath}`);
-      return { success: true };
-    } catch (error) {
-      console.error(`Error renaming/moving ${oldPath} to ${newPath}:`, error);
-      let errorMessage = (error as Error).message;
-      if ((error as any).code === 'ENOENT')
-        errorMessage = `File or directory not found at the original path: ${oldPath}.`;
-      else if ((error as any).code === 'EPERM' || (error as any).code === 'EACCES')
-        errorMessage = `Permission denied to rename/move the item at ${oldPath}. Check file/folder permissions.`;
-      else if ((error as any).code === 'EBUSY')
-        errorMessage = `The file or directory at ${oldPath} or ${newPath} is busy or locked by another process.`;
-      else if ((error as any).code === 'EXDEV')
-        errorMessage = `Cannot move across different file systems or drives. Source: ${oldPath}, Target: ${newPath}.`;
-      else if ((error as any).code === 'EISDIR')
-        errorMessage = `Cannot overwrite a directory with a file, or vice versa. Source: ${oldPath}, Target: ${newPath}.`;
-      else if ((error as any).code === 'ENOTEMPTY')
-        errorMessage = `The target directory ${newPath} is not empty (relevant on some systems).`;
-      return { error: errorMessage, success: false };
-    }
+
+    return results;
   }
 
-  // Add IPC Handler for renameFile tool
-  // TODO: Define RenameLocalFileParams in @lobechat/electron-client-ipc based on manifest
   @ipcClientEvent('renameLocalFile')
   async handleRenameFile({
     path: currentPath,
