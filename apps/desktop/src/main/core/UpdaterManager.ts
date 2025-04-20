@@ -45,6 +45,7 @@ export class UpdaterManager {
 
     autoUpdater.channel = channel;
     autoUpdater.allowPrerelease = channel !== 'stable';
+    autoUpdater.allowDowngrade = false;
 
     // Enable test mode in development environment
     if (isDev) {
@@ -59,10 +60,10 @@ export class UpdaterManager {
     // If auto-check for updates is configured, set up periodic checks
     if (updaterConfig.app.autoCheckUpdate) {
       // Delay update check by 1 minute after startup to avoid network instability
-      setTimeout(() => this.checkForUpdates(false), 60 * 1000);
+      setTimeout(() => this.checkForUpdates(), 60 * 1000);
 
       // Set up periodic checks
-      setInterval(() => this.checkForUpdates(false), updaterConfig.app.checkUpdateInterval);
+      setInterval(() => this.checkForUpdates(), updaterConfig.app.checkUpdateInterval);
     }
 
     // Log the channel and allowPrerelease values
@@ -77,7 +78,7 @@ export class UpdaterManager {
    * Check for updates
    * @param manual whether this is a manual check for updates
    */
-  public checkForUpdates = async (manual: boolean = true) => {
+  public checkForUpdates = async ({ manual = false }: { manual?: boolean } = {}) => {
     if (this.checking || this.downloading) return;
 
     this.checking = true;
@@ -86,7 +87,7 @@ export class UpdaterManager {
 
     // If manual check, notify renderer process about check start
     if (manual) {
-      this.mainWindow.broadcast('updateCheckStart');
+      this.mainWindow.broadcast('manualUpdateCheckStart');
     }
 
     try {
@@ -141,9 +142,7 @@ export class UpdaterManager {
     this.app.isQuiting = true;
 
     // Delay installation by 1 second to ensure window is closed
-    setTimeout(() => {
-      autoUpdater.quitAndInstall(false, true);
-    }, 1000);
+    autoUpdater.quitAndInstall();
   };
 
   /**
@@ -186,7 +185,7 @@ export class UpdaterManager {
 
     // Notify renderer process
     if (this.isManualCheck) {
-      mainWindow.broadcast('updateAvailable', mockUpdateInfo);
+      mainWindow.broadcast('manualUpdateAvailable', mockUpdateInfo);
     } else {
       // In auto-check mode, directly simulate download
       this.simulateDownloadProgress();
@@ -279,14 +278,14 @@ export class UpdaterManager {
       this.updateAvailable = true;
 
       if (this.isManualCheck) {
-        this.mainWindow.broadcast('updateAvailable', info);
+        this.mainWindow.broadcast('manualUpdateAvailable', info);
       }
     });
 
     autoUpdater.on('update-not-available', (info) => {
       logger.info(`Update not available. Current: ${info.version}`);
       if (this.isManualCheck) {
-        this.mainWindow.broadcast('updateNotAvailable', info);
+        this.mainWindow.broadcast('manualUpdateNotAvailable', info);
       }
     });
 

@@ -5,6 +5,7 @@ import { useElectronStore } from '@/store/electron';
 import { electronStylish } from '@/styles/electron';
 
 import Sync from './Sync';
+import { UpdateModal } from './UpdateModal';
 import { UpdateNotification } from './UpdateNotification';
 
 export const TITLE_BAR_HEIGHT = 36;
@@ -32,6 +33,7 @@ const TitleBar = memo(() => {
         <UpdateNotification />
         <Sync />
       </Flexbox>
+      <UpdateModal />
     </Flexbox>
   );
 });

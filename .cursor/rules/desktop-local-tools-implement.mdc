@@ -1,10 +1,8 @@
 ---
-description:
-globs:
+description: 
+globs: 
 alwaysApply: false
 ---
-好的，我已经将新增桌面端工具（Tool）的流程总结并添加到我的内部规则中。以后在类似请求时，我会遵循以下步骤：
-
 **新增桌面端工具流程:**
 
 1.  **定义工具接口 (Manifest):**

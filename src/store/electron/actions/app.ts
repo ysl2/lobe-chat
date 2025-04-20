@@ -39,7 +39,6 @@ export const createElectronAppSlice: StateCreator<
       async () => electronSystemService.getAppState(),
       {
         onSuccess: (result) => {
-          console.log('appState:', result);
           set({ appState: result }, false, 'initElectronAppState');
 
           // Update the global agent context manager with relevant paths

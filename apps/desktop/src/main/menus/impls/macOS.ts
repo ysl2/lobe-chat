@@ -1,4 +1,5 @@
 import { Menu, MenuItemConstructorOptions, app, shell } from 'electron';
+import * as path from 'node:path';
 
 import { isDev } from '@/const/env';
 
@@ -73,7 +74,7 @@ export class MacOSMenu extends BaseMenuPlatform implements IMenuPlatform {
           },
           {
             click: () => {
-              this.app.updaterManager.checkForUpdates(true);
+              this.app.updaterManager.checkForUpdates({ manual: true });
             },
             label: t('common.checkUpdates'),
           },
@@ -167,8 +168,6 @@ export class MacOSMenu extends BaseMenuPlatform implements IMenuPlatform {
         label: t('help.title'),
         role: 'help',
         submenu: [
-          { accelerator: 'F12', label: t('dev.devTools'), role: 'toggleDevTools' },
-          { type: 'separator' },
           {
             click: async () => {
               await shell.openExternal('https://lobehub.com');
@@ -186,6 +185,29 @@ export class MacOSMenu extends BaseMenuPlatform implements IMenuPlatform {
               await shell.openExternal('https://github.com/lobehub/lobe-chat/issues/new/choose');
             },
             label: t('help.reportIssue'),
+          },
+          { type: 'separator' },
+          {
+            click: () => {
+              const logsPath = app.getPath('logs');
+              console.log(`[Menu] Opening logs directory: ${logsPath}`);
+              shell.openPath(logsPath).catch((err) => {
+                console.error(`[Menu] Error opening path ${logsPath}:`, err);
+                // Optionally show an error dialog to the user
+              });
+            },
+            label: '打开日志目录',
+          },
+          {
+            click: () => {
+              const userDataPath = app.getPath('userData');
+              console.log(`[Menu] Opening user data directory: ${userDataPath}`);
+              shell.openPath(userDataPath).catch((err) => {
+                console.error(`[Menu] Error opening path ${userDataPath}:`, err);
+                // Optionally show an error dialog to the user
+              });
+            },
+            label: '配置目录',
           },
         ],
       },
@@ -211,13 +233,23 @@ export class MacOSMenu extends BaseMenuPlatform implements IMenuPlatform {
           {
             click: () => {
               const userDataPath = app.getPath('userData');
-              console.log(`[Menu] Opening user data directory: ${userDataPath}`);
               shell.openPath(userDataPath).catch((err) => {
                 console.error(`[Menu] Error opening path ${userDataPath}:`, err);
-                // Optionally show an error dialog to the user
               });
             },
             label: '用户配置目录',
+          },
+          {
+            click: () => {
+              // @ts-expect-error cache 目录好像暂时不在类型定义里
+              const cachePath = app.getPath('cache');
+
+              const updaterCachePath = path.join(cachePath, `${app.getName()}-updater`);
+              shell.openPath(updaterCachePath).catch((err) => {
+                console.error(`[Menu] Error opening path ${updaterCachePath}:`, err);
+              });
+            },
+            label: '更新缓存目录',
           },
           { type: 'separator' },
           {

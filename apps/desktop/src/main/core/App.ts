@@ -278,7 +278,7 @@ export class App {
     if (!isDev) return;
 
     logger.debug('Setting up dev branding');
-    app.setName('LobeHub Dev');
+    app.setName('lobehub-desktop-dev');
     if (macOS()) {
       app.dock!.setIcon(join(buildDir, 'icon-dev.png'));
     }

@@ -52,11 +52,6 @@ export const UpdateNotification: React.FC = () => {
     autoUpdateService.checkUpdate();
   }, []);
 
-  useWatchBroadcast('updateAvailable', (info: UpdateInfo) => {
-    setUpdateInfo(info);
-    setUpdateAvailable(true);
-  });
-
   useWatchBroadcast('updateDownloadProgress', (progress: { percent: number }) => {
     setDownloadProgress(progress.percent);
   });
@@ -179,7 +174,6 @@ export const UpdateNotification: React.FC = () => {
           <Icon icon={Download} style={{ fontSize: 14 }} /> 已有可用更新
         </Flexbox>
       </Popover>
-
       {/* 下次启动时更新提示 */}
       {willInstallLater && (
         <div

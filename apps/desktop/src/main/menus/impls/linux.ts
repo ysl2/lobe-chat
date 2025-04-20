@@ -60,7 +60,7 @@ export class LinuxMenu extends BaseMenuPlatform implements IMenuPlatform {
           },
           {
             click: () => {
-              this.app.updaterManager.checkForUpdates(true);
+              this.app.updaterManager.checkForUpdates({ manual: true });
             },
             label: t('common.checkUpdates') || '检查更新',
           },
