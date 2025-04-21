@@ -4,7 +4,7 @@ import { Flexbox } from 'react-layout-kit';
 import { useElectronStore } from '@/store/electron';
 import { electronStylish } from '@/styles/electron';
 
-import Sync from './Sync';
+import Connection from './Connection';
 import { UpdateModal } from './UpdateModal';
 import { UpdateNotification } from './UpdateNotification';
 
@@ -31,7 +31,7 @@ const TitleBar = memo(() => {
 
       <Flexbox className={electronStylish.nodrag} gap={8} horizontal>
         <UpdateNotification />
-        <Sync />
+        <Connection />
       </Flexbox>
       <UpdateModal />
     </Flexbox>

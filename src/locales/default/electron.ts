@@ -17,6 +17,30 @@ const electron = {
     statusDisconnected: '未连接',
     urlRequired: '请输入服务器地址',
   },
+  sync: {
+    continue: '继续',
+    inCloud: '当前使用云端同步',
+    inLocalStorage: '当前使用本地存储',
+    isIniting: '正在初始化...',
+    lobehubCloud: {
+      description: '官方提供的云版本',
+      title: 'LobeHub Cloud',
+    },
+    local: {
+      description: '使用本地数据库，完全离线可用',
+      title: '本地数据库',
+    },
+    mode: {
+      cloudSync: '云端同步',
+      localStorage: '本地存储',
+      title: '选择你的连接模式',
+      useSelfHosted: '使用自托管实例？',
+    },
+    selfHosted: {
+      description: '自行部署的社区版本',
+      title: '自托管实例',
+    },
+  },
   updater: {
     checkingUpdate: '检查新版本',
     checkingUpdateDesc: '正在获取版本信息...',
@@ -33,8 +57,13 @@ const electron = {
     updateError: '更新错误',
     updateReady: '更新已就绪',
     updateReadyDesc: '新版本 {{version}} 已下载完成，重启应用后即可完成安装。',
-
     upgradeNow: '立即更新',
+  },
+  waitingOAuth: {
+    cancel: '取消',
+    description: '浏览器已打开授权页面，请在浏览器中完成授权',
+    helpText: '如果浏览器没有自动打开，请点击取消后重新尝试',
+    title: '等待授权连接',
   },
 };
 

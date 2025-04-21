@@ -57,6 +57,7 @@ export default class Browser {
    */
   constructor(options: BrowserWindowOpts, application: App) {
     logger.debug(`Creating Browser instance: ${options.identifier}`);
+    logger.debug(`Browser options: ${JSON.stringify(options)}`);
     this.app = application;
     this.identifier = options.identifier;
     this.options = options;
@@ -69,55 +70,64 @@ export default class Browser {
     const initUrl = this.app.nextServerUrl + path;
 
     try {
-      logger.debug(`Loading URL: ${initUrl}`);
+      logger.debug(`[${this.identifier}] Attempting to load URL: ${initUrl}`);
       await this._browserWindow.loadURL(initUrl);
-      logger.debug(`Successfully loaded URL: ${initUrl}`);
+      logger.debug(`[${this.identifier}] Successfully loaded URL: ${initUrl}`);
     } catch (error) {
-      logger.error(`Failed to load URL (${initUrl}):`, error);
+      logger.error(`[${this.identifier}] Failed to load URL (${initUrl}):`, error);
 
       // Try to load local error page
       try {
+        logger.info(`[${this.identifier}] Attempting to load error page...`);
         await this._browserWindow.loadFile(join(resourcesDir, 'error.html'));
-        logger.info('Error page loaded');
+        logger.info(`[${this.identifier}] Error page loaded successfully.`);
 
         // Remove previously set retry listeners to avoid duplicates
+        ipcMain.removeHandler('retry-connection');
+        logger.debug(`[${this.identifier}] Removed existing retry-connection handler if any.`);
 
         // Set retry logic
         ipcMain.handle('retry-connection', async () => {
-          logger.info(`Attempting to reconnect to: ${initUrl}`);
+          logger.info(`[${this.identifier}] Retry connection requested for: ${initUrl}`);
           try {
             await this._browserWindow?.loadURL(initUrl);
-            logger.info('Reconnection successful');
+            logger.info(`[${this.identifier}] Reconnection successful to ${initUrl}`);
             return { success: true };
           } catch (err) {
-            logger.error('Retry failed:', err);
+            logger.error(`[${this.identifier}] Retry connection failed for ${initUrl}:`, err);
             // Reload error page
             try {
+              logger.info(`[${this.identifier}] Reloading error page after failed retry...`);
               await this._browserWindow?.loadFile(join(resourcesDir, 'error.html'));
+              logger.info(`[${this.identifier}] Error page reloaded.`);
             } catch (loadErr) {
-              logger.error('Failed to load error page:', loadErr);
+              logger.error('[${this.identifier}] Failed to reload error page:', loadErr);
             }
             return { error: err.message, success: false };
           }
         });
+        logger.debug(`[${this.identifier}] Set up retry-connection handler.`);
       } catch (err) {
-        logger.error('Failed to load error page:', err);
+        logger.error(`[${this.identifier}] Failed to load error page:`, err);
         // If even the error page can't be loaded, at least show a simple error message
         try {
+          logger.warn(`[${this.identifier}] Attempting to load fallback error HTML string...`);
           await this._browserWindow.loadURL(
             'data:text/html,<html><body><h1>Loading Failed</h1><p>Unable to connect to server, please restart the application</p></body></html>',
           );
+          logger.info(`[${this.identifier}] Fallback error HTML string loaded.`);
         } catch (finalErr) {
-          logger.error('Unable to display any page:', finalErr);
+          logger.error(`[${this.identifier}] Unable to display any page:`, finalErr);
         }
       }
     }
   };
 
   loadPlaceholder = async () => {
-    logger.debug('Loading splash screen');
+    logger.debug(`[${this.identifier}] Loading splash screen placeholder`);
     // First load a local HTML loading page
     await this._browserWindow.loadFile(join(resourcesDir, 'splash.html'));
+    logger.debug(`[${this.identifier}] Splash screen placeholder loaded.`);
   };
 
   show() {
@@ -131,7 +141,7 @@ export default class Browser {
   }
 
   close() {
-    logger.debug(`Closing window: ${this.identifier}`);
+    logger.debug(`Attempting to close window: ${this.identifier}`);
     this.browserWindow.close();
   }
 
@@ -139,7 +149,7 @@ export default class Browser {
    * Destroy instance
    */
   destroy() {
-    logger.debug(`Destroying window: ${this.identifier}`);
+    logger.debug(`Destroying window instance: ${this.identifier}`);
     this.stopInterceptHandler?.();
     this._browserWindow = undefined;
   }
@@ -150,12 +160,14 @@ export default class Browser {
   retrieveOrInitialize() {
     // When there is this window and it has not been destroyed
     if (this._browserWindow && !this._browserWindow.isDestroyed()) {
+      logger.debug(`[${this.identifier}] Returning existing BrowserWindow instance.`);
       return this._browserWindow;
     }
 
     const { path, title, width, height, devTools, showOnInit, ...res } = this.options;
 
     logger.info(`Creating new BrowserWindow instance: ${this.identifier}`);
+    logger.debug(`[${this.identifier}] Options for new window: ${JSON.stringify(this.options)}`);
     const browserWindow = new BrowserWindow({
       ...res,
       height,
@@ -173,42 +185,55 @@ export default class Browser {
     });
 
     this._browserWindow = browserWindow;
+    logger.debug(`[${this.identifier}] BrowserWindow instance created.`);
 
+    logger.debug(`[${this.identifier}] Setting up nextInterceptor.`);
     this.stopInterceptHandler = this.app.nextInterceptor({
       session: browserWindow.webContents.session,
     });
 
     // Windows 11 can use this new API
     if (process.platform === 'win32' && browserWindow.setBackgroundMaterial) {
-      logger.debug('Setting window background material for Windows 11');
+      logger.debug(`[${this.identifier}] Setting window background material for Windows 11`);
       browserWindow.setBackgroundMaterial('acrylic');
     }
 
+    logger.debug(`[${this.identifier}] Initiating placeholder and URL loading sequence.`);
     this.loadPlaceholder().then(() => {
       this.loadUrl(path).catch((e) => {
-        logger.error(`Load URL error for path: ${path}`, e);
+        logger.error(`[${this.identifier}] Initial loadUrl error for path '${path}':`, e);
       });
     });
 
     // Show devtools if enabled
     if (devTools) {
-      logger.debug('Opening DevTools');
+      logger.debug(`[${this.identifier}] Opening DevTools because devTools option is true.`);
       browserWindow.webContents.openDevTools();
     }
 
+    logger.debug(`[${this.identifier}] Setting up 'ready-to-show' event listener.`);
     browserWindow.once('ready-to-show', () => {
+      logger.debug(`[${this.identifier}] Window 'ready-to-show' event fired.`);
       if (showOnInit) {
-        logger.debug(`Window ready to show, showing: ${this.identifier}`);
+        logger.debug(`Showing window ${this.identifier} because showOnInit is true.`);
         browserWindow?.show();
+      } else {
+        logger.debug(
+          `Window ${this.identifier} not shown on 'ready-to-show' because showOnInit is false.`,
+        );
       }
     });
 
+    logger.debug(`[${this.identifier}] Setting up 'close' event listener.`);
     browserWindow.on('close', (e) => {
-      logger.debug(`Window close event: ${this.identifier}`);
+      logger.debug(`Window 'close' event triggered for: ${this.identifier}`);
+      logger.debug(
+        `[${this.identifier}] State during close event: isQuiting=${this.app.isQuiting}, keepAlive=${this.options.keepAlive}`,
+      );
 
       // If in application quitting process, allow window to be closed
       if (this.app.isQuiting) {
-        logger.debug(`App is quitting, allowing window to close: ${this.identifier}`);
+        logger.debug(`[${this.identifier}] App is quitting, allowing window to close naturally.`);
         // Need to clean up intercept handler
         this.stopInterceptHandler?.();
         return;
@@ -216,15 +241,21 @@ export default class Browser {
 
       // Prevent window from being destroyed, just hide it (if marked as keepAlive)
       if (this.options.keepAlive) {
-        logger.debug(`Window needs to remain active, hiding instead: ${this.identifier}`);
+        logger.debug(
+          `[${this.identifier}] keepAlive is true, preventing default close and hiding window.`,
+        );
         e.preventDefault();
         browserWindow.hide();
       } else {
+        logger.debug(
+          `[${this.identifier}] keepAlive is false, allowing window to close. Cleaning up intercept handler.`,
+        );
         // Need to clean up intercept handler
         this.stopInterceptHandler?.();
       }
     });
 
+    logger.debug(`[${this.identifier}] retrieveOrInitialize completed.`);
     return browserWindow;
   }
 
