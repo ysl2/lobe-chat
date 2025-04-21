@@ -45,7 +45,7 @@ const Connection = () => {
         styles={{ body: { padding: 0 }, header: { padding: 0 } }}
       >
         {isWaiting ? (
-          <WaitingOAuth setWaiting={setWaiting} />
+          <WaitingOAuth setIsOpen={setIsOpen} setWaiting={setWaiting} />
         ) : (
           <Mode setIsOpen={setIsOpen} setWaiting={setWaiting} />
         )}

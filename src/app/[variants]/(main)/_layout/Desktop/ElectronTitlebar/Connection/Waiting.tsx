@@ -1,5 +1,6 @@
 'use client';
 
+import { useWatchBroadcast } from '@lobechat/electron-client-ipc';
 import { Icon } from '@lobehub/ui';
 import { Button, Typography } from 'antd';
 import { createStyles, cx, keyframes } from 'antd-style';
@@ -150,17 +151,27 @@ const useStyles = createStyles(({ css, token }) => ({
 }));
 
 interface WaitingOAuthProps {
+  setIsOpen: (open: boolean) => void;
   setWaiting: (waiting: boolean) => void;
 }
-const WaitingOAuth = memo<WaitingOAuthProps>(({ setWaiting }) => {
+const WaitingOAuth = memo<WaitingOAuthProps>(({ setWaiting, setIsOpen }) => {
   const { styles } = useStyles();
   const { t } = useTranslation('electron'); // 指定 namespace 为 electron
-  const disconnect = useElectronStore((s) => s.disconnectRemoteServer);
+  const [disconnect, refreshServerConfig] = useElectronStore((s) => [
+    s.disconnectRemoteServer,
+    s.refreshServerConfig,
+  ]);
 
   const handleCancel = async () => {
     await disconnect();
     setWaiting(false);
   };
+
+  useWatchBroadcast('authorizationSuccessful', async () => {
+    setIsOpen(false);
+    setWaiting(false);
+    await refreshServerConfig();
+  });
 
   return (
     <div className={styles.container}>

@@ -1,3 +1,4 @@
+import { RemoteServerConfig } from '@lobechat/electron-client-ipc';
 import { safeStorage } from 'electron';
 import querystring from 'node:querystring';
 import { URL } from 'node:url';
@@ -22,12 +23,15 @@ export default class RemoteServerConfigCtr extends ControllerModule {
     logger.debug('Getting remote server configuration');
     const { storeManager } = this.app;
 
-    const config = {
+    const config: RemoteServerConfig = {
       active: storeManager.get('active', false),
+      isSelfHosted: storeManager.get('isSelfHosted', false),
       remoteServerUrl: storeManager.get('remoteServerUrl', ''),
     };
 
-    logger.debug(`Remote server config: active=${config.active}, url=${config.remoteServerUrl}`);
+    logger.debug(
+      `Remote server config: active=${config.active}, url=${config.remoteServerUrl}, isSelfHosted=${config.isSelfHosted}`,
+    );
     return config;
   }
 
@@ -35,7 +39,7 @@ export default class RemoteServerConfigCtr extends ControllerModule {
    * Set remote server configuration
    */
   @ipcClientEvent('setRemoteServerConfig')
-  async setRemoteServerConfig(config: { active: boolean; remoteServerUrl: string }) {
+  async setRemoteServerConfig(config: RemoteServerConfig) {
     logger.info(
       `Setting remote server config: active=${config.active}, url=${config.remoteServerUrl}`,
     );
@@ -44,6 +48,7 @@ export default class RemoteServerConfigCtr extends ControllerModule {
     // Save configuration
     storeManager.set('remoteServerUrl', config.remoteServerUrl);
     storeManager.set('active', config.active);
+    storeManager.set('isSelfHosted', config.isSelfHosted);
 
     return true;
   }
@@ -271,6 +276,7 @@ export default class RemoteServerConfigCtr extends ControllerModule {
 
       await this.setRemoteServerConfig({
         active: false,
+        isSelfHosted: !!config.remoteServerUrl,
         remoteServerUrl: config.remoteServerUrl || '',
       });
 
