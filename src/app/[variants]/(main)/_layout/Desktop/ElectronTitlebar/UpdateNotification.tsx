@@ -4,7 +4,7 @@ import { Icon } from '@lobehub/ui';
 import { Badge, Button, Popover, Progress, Tooltip, theme } from 'antd';
 import { createStyles } from 'antd-style';
 import { Download } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Flexbox } from 'react-layout-kit';
 
