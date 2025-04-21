@@ -48,10 +48,6 @@ export const UpdateNotification: React.FC = () => {
   const [willInstallLater, setWillInstallLater] = useState(false);
   const [isPopoverVisible, setIsPopoverVisible] = useState(false);
 
-  useEffect(() => {
-    autoUpdateService.checkUpdate();
-  }, []);
-
   useWatchBroadcast('updateDownloadProgress', (progress: { percent: number }) => {
     setDownloadProgress(progress.percent);
   });
