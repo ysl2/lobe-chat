@@ -240,19 +240,7 @@
     "mermaidTheme": {
       "title": "Mermaid Theme"
     },
-    "title": "Chat Appearance",
-    "transitionMode": {
-      "desc": "Transition animation for chat messages",
-      "options": {
-        "fadeIn": "Fade In",
-        "none": {
-          "desc": "This depends on the model's response output method; please test it yourself.",
-          "value": "None"
-        },
-        "smooth": "Smooth"
-      },
-      "title": "Transition Animation"
-    }
+    "title": "Chat Appearance"
   },
   "settingCommon": {
     "lang": {

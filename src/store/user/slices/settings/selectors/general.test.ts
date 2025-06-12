@@ -19,7 +19,6 @@ describe('settingsSelectors', () => {
         fontSize: 12,
         highlighterTheme: 'lobe-theme',
         mermaidTheme: 'lobe-theme',
-        transitionMode: 'fadeIn',
       });
     });
   });

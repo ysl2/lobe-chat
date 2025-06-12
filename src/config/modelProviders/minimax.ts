@@ -50,11 +50,11 @@ const Minimax: ModelProviderCard = {
     proxyUrl: {
       placeholder: 'https://api.minimax.chat/v1',
     },
-    responseAnimation: {
-      speed: 2,
-      text: 'smooth',
-    },
     sdkType: 'openai',
+    smoothing: {
+      speed: 2,
+      text: true,
+    },
   },
   url: 'https://www.minimaxi.com',
 };

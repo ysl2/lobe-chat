@@ -59,11 +59,11 @@ const Perplexity: ModelProviderCard = {
     proxyUrl: {
       placeholder: 'https://api.perplexity.ai',
     },
-    responseAnimation: {
-      speed: 2,
-      text: 'smooth',
-    },
     sdkType: 'openai',
+    smoothing: {
+      speed: 2,
+      text: true,
+    },
   },
   url: 'https://www.perplexity.ai',
 };
