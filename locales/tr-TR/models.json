@@ -998,6 +998,12 @@
   "ernie-x1-turbo-32k": {
     "description": "ERNIE-X1-32K ile karşılaştırıldığında, modelin etkisi ve performansı daha iyidir."
   },
+  "flux-kontext/dev": {
+    "description": "Frontier görüntü düzenleme modeli."
+  },
+  "flux-pro/kontext": {
+    "description": "FLUX.1 Kontext [pro], metin ve referans görüntüleri girdi olarak işleyebilir, hedefe yönelik yerel düzenlemeleri ve karmaşık genel sahne dönüşümlerini sorunsuz bir şekilde gerçekleştirebilir."
+  },
   "flux/schnell": {
     "description": "FLUX.1 [schnell], 12 milyar parametreye sahip bir akış dönüştürücü modelidir ve 1 ila 4 adımda metinden yüksek kaliteli görüntüler üretebilir, kişisel ve ticari kullanım için uygundur."
   },

@@ -998,6 +998,12 @@
   "ernie-x1-turbo-32k": {
     "description": "Im Vergleich zu ERNIE-X1-32K bietet dieses Modell bessere Leistung und Effizienz."
   },
+  "flux-kontext/dev": {
+    "description": "Frontier Bildbearbeitungsmodell."
+  },
+  "flux-pro/kontext": {
+    "description": "FLUX.1 Kontext [pro] kann Text und Referenzbilder als Eingabe verarbeiten und ermöglicht nahtlose zielgerichtete lokale Bearbeitungen sowie komplexe umfassende Szenenveränderungen."
+  },
   "flux/schnell": {
     "description": "FLUX.1 [schnell] ist ein Streaming-Transformator-Modell mit 12 Milliarden Parametern, das in 1 bis 4 Schritten hochwertige Bilder aus Text generieren kann und sowohl für den privaten als auch den kommerziellen Gebrauch geeignet ist."
   },

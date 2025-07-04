@@ -998,6 +998,12 @@
   "ernie-x1-turbo-32k": {
     "description": "與ERNIE-X1-32K相比，模型效果和性能更佳。"
   },
+  "flux-kontext/dev": {
+    "description": "Frontier 影像編輯模型。"
+  },
+  "flux-pro/kontext": {
+    "description": "FLUX.1 Kontext [pro] 能夠處理文字和參考圖像作為輸入，無縫實現目標性的局部編輯和複雜的整體場景變換。"
+  },
   "flux/schnell": {
     "description": "FLUX.1 [schnell] 是一個擁有120億參數的串流轉換器模型，能夠在1到4步內從文本生成高品質圖像，適合個人和商業用途。"
   },

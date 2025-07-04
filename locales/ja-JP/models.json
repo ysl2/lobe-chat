@@ -998,6 +998,12 @@
   "ernie-x1-turbo-32k": {
     "description": "ERNIE-X1-32Kと比較して、モデルの効果と性能が向上しています。"
   },
+  "flux-kontext/dev": {
+    "description": "フロンティアイメージ編集モデル。"
+  },
+  "flux-pro/kontext": {
+    "description": "FLUX.1 Kontext [pro] はテキストと参照画像を入力として処理し、目的に応じた局所編集や複雑な全体シーンの変換をシームレスに実現します。"
+  },
   "flux/schnell": {
     "description": "FLUX.1 [schnell] は120億パラメータを持つストリーミング変換モデルで、1〜4ステップでテキストから高品質な画像を生成できます。個人および商用利用に適しています。"
   },

@@ -998,6 +998,12 @@
   "ernie-x1-turbo-32k": {
     "description": "So với ERNIE-X1-32K, mô hình này có hiệu suất và hiệu quả tốt hơn."
   },
+  "flux-kontext/dev": {
+    "description": "Mô hình chỉnh sửa hình ảnh Frontier."
+  },
+  "flux-pro/kontext": {
+    "description": "FLUX.1 Kontext [pro] có khả năng xử lý văn bản và hình ảnh tham khảo làm đầu vào, thực hiện chỉnh sửa cục bộ có mục tiêu và biến đổi toàn cảnh phức tạp một cách liền mạch."
+  },
   "flux/schnell": {
     "description": "FLUX.1 [schnell] là một mô hình bộ chuyển đổi dòng có 12 tỷ tham số, có khả năng tạo ra hình ảnh chất lượng cao từ văn bản trong 1 đến 4 bước, phù hợp cho cả mục đích cá nhân và thương mại."
   },
