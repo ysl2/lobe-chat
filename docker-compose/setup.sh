@@ -420,7 +420,7 @@ ask() {
         description="$description "
     fi
     local result
-    
+
     if [ -n "$default" ]; then
         read -p "$prompt [${description}${default}]: " result
         result=${result:-$default}
@@ -481,11 +481,11 @@ section_download_files(){
         echo "wget" $(show_message "tips_no_executable")
         exit 1
     fi
-    
+
     download_file "$SOURCE_URL/${FILES[0]}" "docker-compose.yml"
     download_file "$SOURCE_URL/${FILES[1]}" "init_data.json"
     download_file "$SOURCE_URL/${FILES[2]}" "searxng-settings.yml"
-    
+
     # Download .env.example with the specified language
     if [ "$LANGUAGE" = "zh_CN" ]; then
         download_file "$SOURCE_URL/${ENV_EXAMPLES[0]}" ".env"
@@ -522,13 +522,13 @@ section_configurate_host() {
             sed "${SED_INPLACE_ARGS[@]}" "s#http://#https://#" .env
         fi
     fi
-    
+
     # Check if sed is installed
     if ! command -v sed "${SED_INPLACE_ARGS[@]}" &> /dev/null ; then
         echo "sed" $(show_message "tips_no_executable")
         exit 1
     fi
-    
+
     # If user not specify host, try to get the server ip
     if [ -z "$HOST" ]; then
         HOST=$(hostname -I | awk '{print $1}')
@@ -537,8 +537,8 @@ section_configurate_host() {
             echo $(show_message "tips_private_ip_detected")
         fi
     fi
-    
-   
+
+
     case $DEPLOY_MODE in
         0)
             DEPLOY_MODE="domain"
@@ -573,7 +573,7 @@ section_configurate_host() {
             exit 1
         ;;
     esac
-    
+
     # lobe host
     sed "${SED_INPLACE_ARGS[@]}" "s#^APP_URL=.*#APP_URL=$PROTOCOL://$LOBE_HOST#" .env
     # auth related
@@ -583,7 +583,7 @@ section_configurate_host() {
     # s3 related
     sed "${SED_INPLACE_ARGS[@]}" "s#^S3_PUBLIC_DOMAIN=.*#S3_PUBLIC_DOMAIN=$PROTOCOL://$MINIO_HOST#" .env
     sed "${SED_INPLACE_ARGS[@]}" "s#^S3_ENDPOINT=.*#S3_ENDPOINT=$PROTOCOL://$MINIO_HOST#" .env
-    
+
 
     # Check if env modified success
     if [ $? -ne 0 ]; then
@@ -620,7 +620,7 @@ section_regenerate_secrets() {
         echo "head" $(show_message "tips_no_executable")
         exit 1
     fi
-    
+
     generate_key() {
         if [[ -z "$1" ]]; then
             echo "Usage: generate_key <length>"
@@ -628,13 +628,13 @@ section_regenerate_secrets() {
         fi
         echo $(openssl rand -hex $1 | tr -d '\n' | fold -w $1 | head -n 1)
     }
-    
+
     if ! command -v sed &> /dev/null ; then
         echo "sed" $(show_message "tips_no_executable")
         exit 1
     fi
     echo $(show_message "security_secrect_regenerate")
-    
+
     # Generate CASDOOR_SECRET
     CASDOOR_SECRET=$(generate_key 32)
     if [ $? -ne 0 ]; then
@@ -651,7 +651,7 @@ section_regenerate_secrets() {
             echo $(show_message "security_secrect_regenerate_failed") "AUTH_CASDOOR_SECRET in \`init_data.json\`"
         fi
     fi
-    
+
     # Generate Casdoor User
     CASDOOR_USER="admin"
     CASDOOR_PASSWORD=$(generate_key 10)
@@ -722,18 +722,18 @@ if [[ "$ask_result" == "y" ]]; then
     if [ $? -ne 0 ]; then
         echo $(show_message "tips_init_database_failed")
     fi
-else 
+else
     show_message "tips_init_database_failed"
 fi
 
 section_display_configurated_report() {
     # Display configuration reports
     echo $(show_message "security_secrect_regenerate_report")
-    
+
     echo -e "LobeChat: \n  - URL: $PROTOCOL://$LOBE_HOST \n  - Username: user \n  - Password: ${CASDOOR_PASSWORD} "
     echo -e "Casdoor: \n  - URL: $PROTOCOL://$CASDOOR_HOST \n  - Username: admin \n  - Password: ${CASDOOR_PASSWORD}\n"
     echo -e "Minio: \n  - URL: $PROTOCOL://$MINIO_HOST \n  - Username: admin\n  - Password: ${MINIO_ROOT_PASSWORD}\n"
-    
+
     # if user run in domain mode, diplay reverse proxy configuration
     if [[ "$DEPLOY_MODE" == "domain" ]]; then
         echo $(show_message "tips_add_reverse_proxy")
