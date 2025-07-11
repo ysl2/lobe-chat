@@ -19,7 +19,7 @@ services:
     ports:
       - '5432:5432'
     volumes:
-      - './data:/var/lib/postgresql/data'
+      - '/Users/songliyu/Documents/lobe-chat/docker-compose/local/data:/var/lib/postgresql/data'
     environment:
       - 'POSTGRES_DB=${LOBE_DB_NAME}'
       - 'POSTGRES_PASSWORD=${POSTGRES_PASSWORD}'
@@ -37,7 +37,7 @@ services:
     container_name: lobe-minio
     network_mode: 'service:network-service'
     volumes:
-      - './s3_data:/etc/minio/data'
+      - '/Users/songliyu/Documents/lobe-chat/docker-compose/local/s3_data:/etc/minio/data'
     environment:
       - 'MINIO_API_CORS_ALLOW_ORIGIN=*'
     env_file:
@@ -62,7 +62,7 @@ services:
   casdoor:
     image: casbin/casdoor:v1.843.0
     container_name: lobe-casdoor
-    entrypoint: /bin/sh -c './server --createDatabase=true'
+    entrypoint: /bin/sh -c 'sleep 5; ./server --createDatabase=true'
     network_mode: 'service:network-service'
     depends_on:
       postgresql:
@@ -162,11 +162,11 @@ services:
         wait \$LOBE_PID
       "
 
-volumes:
-  data:
-    driver: local
-  s3_data:
-    driver: local
+# volumes:
+#   data:
+#     driver: local
+#   s3_data:
+#     driver: local
 
 networks:
   lobe-network:
