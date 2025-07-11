@@ -1,7 +1,7 @@
 name: lobe-chat-database
 services:
   network-service:
-    image: alpine
+    image: docker.m.daocloud.io/alpine
     container_name: lobe-network
     restart: always
     ports:
@@ -14,12 +14,12 @@ services:
       - lobe-network
 
   postgresql:
-    image: pgvector/pgvector:pg17
+    image: docker.m.daocloud.io/pgvector/pgvector:pg17
     container_name: lobe-postgres
     ports:
       - '5432:5432'
     volumes:
-      - './data:/var/lib/postgresql/data'
+      - '/mnt/nas/Public/lobe-chat/data:/var/lib/postgresql/data'
     environment:
       - 'POSTGRES_DB=${LOBE_DB_NAME}'
       - 'POSTGRES_PASSWORD=${POSTGRES_PASSWORD}'
@@ -33,11 +33,11 @@ services:
       - lobe-network
 
   minio:
-    image: minio/minio:RELEASE.2025-04-22T22-12-26Z
+    image: docker.m.daocloud.io/minio/minio
     container_name: lobe-minio
     network_mode: 'service:network-service'
     volumes:
-      - './s3_data:/etc/minio/data'
+      - '/mnt/nas/Public/lobe-chat/s3_data:/etc/minio/data'
     environment:
       - 'MINIO_API_CORS_ALLOW_ORIGIN=*'
     env_file:
@@ -60,9 +60,9 @@ services:
 
 # version lock ref: https://github.com/lobehub/lobe-chat/pull/7331
   casdoor:
-    image: casbin/casdoor:v1.843.0
+    image: docker.m.daocloud.io/casbin/casdoor:v1.843.0
     container_name: lobe-casdoor
-    entrypoint: /bin/sh -c './server --createDatabase=true'
+    entrypoint: /bin/sh -c 'sleep 5; ./server --createDatabase=true'
     network_mode: 'service:network-service'
     depends_on:
       postgresql:
@@ -79,7 +79,7 @@ services:
       - .env
 
   searxng:
-    image: searxng/searxng
+    image: docker.m.daocloud.io/searxng/searxng
     container_name: lobe-searxng
     volumes:
       - './searxng-settings.yml:/etc/searxng/settings.yml'
@@ -92,7 +92,7 @@ services:
       - .env
 
   lobe:
-    image: lobehub/lobe-chat-database
+    image: docker.m.daocloud.io/lobehub/lobe-chat-database
     container_name: lobe-chat
     network_mode: 'service:network-service'
     depends_on:
@@ -162,11 +162,11 @@ services:
         wait \$LOBE_PID
       "
 
-volumes:
-  data:
-    driver: local
-  s3_data:
-    driver: local
+# volumes:
+#   data:
+#     driver: local
+#   s3_data:
+#     driver: local
 
 networks:
   lobe-network:

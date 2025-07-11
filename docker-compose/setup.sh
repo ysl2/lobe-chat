@@ -6,13 +6,13 @@
 
 # check operating system
 # ref: https://github.com/lobehub/lobe-chat/pull/5247
-if [[ "$OSTYPE" == "darwin"* ]]; then
-    # macOS
-    SED_INPLACE_ARGS=('-i' '')
-else
+# if [[ "$OSTYPE" == "darwin"* ]]; then
+#     # macOS
+#     SED_INPLACE_ARGS=('-i' '')
+# else
     # not macOS
     SED_INPLACE_ARGS=('-i')
-fi
+# fi
 
 # ======================
 # == Process the args ==
@@ -497,8 +497,8 @@ section_download_files(){
 if [ -d "data" ] || [ -d "s3_data" ]; then
     show_message "tips_already_installed"
     exit 0
-else
-    section_download_files
+# else
+#     section_download_files
 fi
 
 section_configurate_host() {
@@ -531,7 +531,11 @@ section_configurate_host() {
 
     # If user not specify host, try to get the server ip
     if [ -z "$HOST" ]; then
-        HOST=$(hostname -I | awk '{print $1}')
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+            HOST=$(ifconfig en0 | awk '/inet / {print $2}')
+        else
+            HOST=$(hostname -I | awk '{print $1}')
+        fi
         # If the host is a private ip and the deploy mode is port mode
         if [[ "$DEPLOY_MODE" == "1" ]] && ([[ "$HOST" == "192.168."* ]] || [[ "$HOST" == "172."* ]] || [[ "$HOST" == "10."* ]]); then
             echo $(show_message "tips_private_ip_detected")
@@ -711,7 +715,7 @@ section_init_database() {
 	docker compose stop
 
     # Init finished, remove init mount
-    echo '{}' > init_data.json
+    # echo '{}' > init_data.json
 }
 
 show_message "ask_init_database"
@@ -729,10 +733,14 @@ fi
 section_display_configurated_report() {
     # Display configuration reports
     echo $(show_message "security_secrect_regenerate_report")
+    echo $(show_message "security_secrect_regenerate_report") > setup.log
 
-    echo -e "LobeChat: \n  - URL: $PROTOCOL://$LOBE_HOST \n  - Username: user \n  - Password: ${CASDOOR_PASSWORD} "
-    echo -e "Casdoor: \n  - URL: $PROTOCOL://$CASDOOR_HOST \n  - Username: admin \n  - Password: ${CASDOOR_PASSWORD}\n"
-    echo -e "Minio: \n  - URL: $PROTOCOL://$MINIO_HOST \n  - Username: admin\n  - Password: ${MINIO_ROOT_PASSWORD}\n"
+    echo -e "LobeChat: \n  - URL: $PROTOCOL://$LOBE_HOST \n  - Username: user \n  - Password: ${CASDOOR_PASSWORD}"
+    echo -e "LobeChat: \n  - URL: $PROTOCOL://$LOBE_HOST \n  - Username: user \n  - Password: ${CASDOOR_PASSWORD}" >> setup.log
+    echo -e "Casdoor: \n  - URL: $PROTOCOL://$CASDOOR_HOST \n  - Username: admin \n  - Password: ${CASDOOR_PASSWORD}"
+    echo -e "Casdoor: \n  - URL: $PROTOCOL://$CASDOOR_HOST \n  - Username: admin \n  - Password: ${CASDOOR_PASSWORD}" >> setup.log
+    echo -e "Minio: \n  - URL: $PROTOCOL://$MINIO_HOST \n  - Username: admin\n  - Password: ${MINIO_ROOT_PASSWORD}"
+    echo -e "Minio: \n  - URL: $PROTOCOL://$MINIO_HOST \n  - Username: admin\n  - Password: ${MINIO_ROOT_PASSWORD}" >> setup.log
 
     # if user run in domain mode, diplay reverse proxy configuration
     if [[ "$DEPLOY_MODE" == "domain" ]]; then
