@@ -233,10 +233,10 @@ show_message() {
         tips_allow_ports)
             case $LANGUAGE in
                 zh_CN)
-                    echo "请确保服务器以下端口未被占用且能被访问：3210, 9000, 9001, 8000"
+                    echo "请确保服务器以下端口未被占用且能被访问：36004, 36005, 36006, 36007, 36008"
                 ;;
                 *)
-                    echo "Please make sure the following ports on the server are not occupied and can be accessed: 3210, 9000, 9001, 8000"
+                    echo "Please make sure the following ports on the server are not occupied and can be accessed: 36004, 36005, 36006, 36007, 36008"
                 ;;
             esac
         ;;
@@ -506,7 +506,7 @@ section_configurate_host() {
     show_message "host_regenerate"
     # If run in local mode, skip this step
     if [[ "$DEPLOY_MODE" == "2" ]]; then
-        HOST="localhost:3210"
+        HOST="localhost:36004"
         LOBE_HOST="$HOST"
         return 0
     fi
@@ -566,9 +566,9 @@ section_configurate_host() {
             # If user use ip mode, use ask_result as the host
             HOST="$ask_result"
             # If user use ip mode, append the port to the host
-            LOBE_HOST="${HOST}:3210"
-            MINIO_HOST="${HOST}:9000"
-            CASDOOR_HOST="${HOST}:8000"
+            LOBE_HOST="${HOST}:36004"
+            MINIO_HOST="${HOST}:36005"
+            CASDOOR_HOST="${HOST}:36007"
             # Setup callback url for Casdoor
             sed "${SED_INPLACE_ARGS[@]}" "s/"localhost:3210"/${LOBE_HOST}/" init_data.json
         ;;
@@ -579,7 +579,7 @@ section_configurate_host() {
     esac
 
     # lobe host
-    sed "${SED_INPLACE_ARGS[@]}" "s#^APP_URL=.*#APP_URL=$PROTOCOL://$LOBE_HOST#" .env
+    sed "${SED_INPLACE_ARGS[@]}" "s#^APP_URL=.*#APP_URL=$PROTOCOL://$HOST:3210#" .env
     # auth related
     sed "${SED_INPLACE_ARGS[@]}" "s#^AUTH_URL=.*#AUTH_URL=$PROTOCOL://$LOBE_HOST/api/auth#" .env
     sed "${SED_INPLACE_ARGS[@]}" "s#^AUTH_CASDOOR_ISSUER=.*#AUTH_CASDOOR_ISSUER=$PROTOCOL://$CASDOOR_HOST#" .env
@@ -745,9 +745,9 @@ section_display_configurated_report() {
     # if user run in domain mode, diplay reverse proxy configuration
     if [[ "$DEPLOY_MODE" == "domain" ]]; then
         echo $(show_message "tips_add_reverse_proxy")
-        printf "\n%s\t->\t%s\n" "$LOBE_HOST" "127.0.0.1:3210"
-        printf "%s\t->\t%s\n" "$CASDOOR_HOST" "127.0.0.1:8000"
-        printf "%s\t->\t%s\n" "$MINIO_HOST" "127.0.0.1:9000"
+        printf "\n%s\t->\t%s\n" "$LOBE_HOST" "127.0.0.1:36004"
+        printf "%s\t->\t%s\n" "$CASDOOR_HOST" "127.0.0.1:36007"
+        printf "%s\t->\t%s\n" "$MINIO_HOST" "127.0.0.1:36005"
     fi
 
     # Display final message
