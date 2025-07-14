@@ -584,7 +584,7 @@ section_configurate_host() {
     esac
 
     # lobe host
-    sed "${SED_INPLACE_ARGS[@]}" "s#^APP_URL=.*#APP_URL=$PROTOCOL://$HOST:3210#" .env
+    sed "${SED_INPLACE_ARGS[@]}" "s#^APP_URL=.*#APP_URL=$PROTOCOL://$LOBE_HOST#" .env
     # auth related
     sed "${SED_INPLACE_ARGS[@]}" "s#^AUTH_URL=.*#AUTH_URL=$PROTOCOL://$LOBE_HOST/api/auth#" .env
     sed "${SED_INPLACE_ARGS[@]}" "s#^AUTH_CASDOOR_ISSUER=.*#AUTH_CASDOOR_ISSUER=$PROTOCOL://$CASDOOR_HOST#" .env

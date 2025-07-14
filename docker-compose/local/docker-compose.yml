@@ -8,10 +8,12 @@ services:
       - '${MINIO_PORT}:${MINIO_PORT}' # MinIO API
       - '36006:9001' # MinIO Console
       - '${CASDOOR_PORT}:${CASDOOR_PORT}' # Casdoor
-      - '${LOBE_PORT}:3210' # LobeChat
+      - '${LOBE_PORT}:${LOBE_PORT}' # LobeChat
     command: tail -f /dev/null
     networks:
       - lobe-network
+    env_file:
+      - .env
 
   postgresql:
     image: docker.m.daocloud.io/pgvector/pgvector:pg17
@@ -31,6 +33,8 @@ services:
     restart: always
     networks:
       - lobe-network
+    env_file:
+      - .env
 
   minio:
     image: docker.m.daocloud.io/minio/minio:RELEASE.2025-04-22T22-12-26Z
