@@ -566,9 +566,9 @@ section_configurate_host() {
             # If user use ip mode, use ask_result as the host
             HOST="$ask_result"
             # If user use ip mode, append the port to the host
-            LOBE_HOST="${HOST}:3210"
-            MINIO_HOST="${HOST}:9000"
-            CASDOOR_HOST="${HOST}:8000"
+            LOBE_HOST="${HOST}:38004"
+            MINIO_HOST="${HOST}:38006"
+            CASDOOR_HOST="${HOST}:38005"
             # Setup callback url for Casdoor
             sed "${SED_INPLACE_ARGS[@]}" "s/"localhost:3210"/${LOBE_HOST}/" init_data.json
         ;;
